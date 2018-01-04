@@ -7,7 +7,8 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      imageURL: ''
+      imageURL: '',
+      imageTags: []
     }
   }
 
@@ -43,6 +44,7 @@ class App extends Component {
 
   submitPhoto = () => {
 
+    // Google Vision API request
     const req = new vision.Request({
       image: new vision.Image({
         base64: this.state.imageURL,
@@ -52,11 +54,12 @@ class App extends Component {
       ]
     })
 
+    // the actual request to the API
     vision.annotate(req).then((res) => {
-      // handling response
-      console.log(res.responses[0])
-    }, (e) => {
-      console.log('Error: ', e)
+      // setting response to this.state.imageTags
+      this.setState({imageTags: res.responses[0].labelAnnotations})
+    }, (err) => {
+      console.log('Error: ', err)
     })
 
   };
@@ -89,7 +92,7 @@ class App extends Component {
   };
 
   render() {
-    // console.log(this.state.imageURL);
+    console.log("STATE: ",this.state.imageTags);
     return (
       <div className="App">
 
