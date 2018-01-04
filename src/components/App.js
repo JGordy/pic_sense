@@ -51,6 +51,7 @@ class App extends Component {
       }),
       features: [
         new vision.Feature('LABEL_DETECTION', 5),
+        new vision.Feature('TEXT_DETECTION', 10),
       ]
     })
 
@@ -58,6 +59,7 @@ class App extends Component {
     vision.annotate(req).then((res) => {
       // setting response to this.state.imageTags
       this.setState({imageTags: res.responses[0].labelAnnotations})
+      console.log(res.responses);
     }, (err) => {
       console.log('Error: ', err)
     })
