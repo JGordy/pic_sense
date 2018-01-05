@@ -18,17 +18,22 @@ class App extends Component {
 
     image.src = canvas.toDataURL("image/png");
     let imgURL = image.src.replace("data:image/png;base64,", "")
-    // console.log(image.src);
     this.setState({imageURL: imgURL});
 
   }
 
+  toggleCanvasPosition = () => {
+    let canvasCont = document.getElementById('canvas_container'),
+    snapButton = document.getElementById('button');
+
+    canvasCont.classList.toggle('snapped');
+    snapButton.classList.toggle('snapped');
+  }
+
   snapPhoto = (width, height) => {
     let canvas = document.getElementById('canvas'),
-        canvasCont = document.getElementById('canvas_container'),
         context = canvas.getContext('2d'),
         video = document.getElementById('video'),
-        snapButton = document.getElementById('button'),
         imageWidth,
         imageHeight;
 
@@ -41,18 +46,13 @@ class App extends Component {
     }
 
     context.drawImage(video, 0, 0, imageWidth, imageHeight);
-
-    canvasCont.style.transform = "translate(0%, -88.5%)";
-    canvasCont.style.transition = "transform 0.4s";
-    snapButton.style.transform = 'translate(0%, 100%)';
-    snapButton.style.transition = 'transform 0.4s';
-
+    this.toggleCanvasPosition();
     this.convertCanvasToImage(canvas);
   };
 
   submitPhoto = () => {
-
-    console.log("submitted!");
+    let submit = document.getElementById('submit');
+    submit.classList.toggle('submitting');
 
     // Google Vision API request
     const req = new vision.Request({
@@ -68,31 +68,50 @@ class App extends Component {
     // the actual request to the API
     vision.annotate(req).then((res) => {
       // setting response to this.state.imageTags
-      console.log(res.responses);
       this.setState({
         imageTags: res.responses[0].labelAnnotations,
         imageText: res.responses[0].textAnnotations
       });
+      submit.classList.toggle('submitting');
     }, (err) => {
       console.log('Error: ', err)
     })
 
   };
 
+  speakSelectedWord = (text) => {
+    const awaitVoices = new Promise(done =>
+    window.speechSynthesis.onvoiceschanged = done);
+
+    awaitVoices.then(()=> {
+      const synth = window.speechSynthesis;
+      var voices = synth.getVoices();
+      console.log("VOICES: ", voices);
+      const utterance = new SpeechSynthesisUtterance();
+      utterance.voice = voices[50];
+      utterance.text = text;
+      synth.speak(utterance);
+    });
+  }
+
   componentDidMount() {
-
     let video = document.getElementById('video'),
-        canvas = document.getElementById('canvas');
+        canvas = document.getElementById('canvas'),
+        synth = window.speechSynthesis,
+        voices;
 
+    this.speakSelectedWord('Face');
+
+    // console.log("MSG: ", msg);
+    console.log("Voices: ", voices);
     // camera access
     if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then(function(stream) {
-            video.src = window.URL.createObjectURL(stream);
-            video.play();
-          });
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+          video.src = window.URL.createObjectURL(stream);
+          video.play();
+        });
     }
-
     if(window.innerWidth <= 850) {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -116,9 +135,14 @@ class App extends Component {
 
         <div id="canvas_container">
           <canvas id="canvas" width='' height=''></canvas>
-          <button id="submit" onClick={() => this.submitPhoto()}>
-            <i className="material-icons">send</i>
-          </button>
+          <div id="canvasButtons">
+            <button id="delete" onClick={() => this.toggleCanvasPosition()}>
+            <i className="material-icons">delete</i>
+            </button>
+            <button id="submit" onClick={() => this.submitPhoto()}>
+              <i className="material-icons">send</i>
+            </button>
+          </div>
         </div>
 
         <img src='' id='image' alt=""/>
@@ -128,12 +152,6 @@ class App extends Component {
             <i className="material-icons">photo_camera</i>
           </button>
         </div>
-
-        {/*<div>
-          <button id="submit" onClick={() => this.submitPhoto()}>
-            <i className="material-icons">send</i>
-          </button>
-        </div>*/}
 
       </div>
     );
