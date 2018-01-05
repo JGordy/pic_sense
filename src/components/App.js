@@ -9,7 +9,8 @@ class App extends Component {
     this.state = {
       imageURL: '',
       imageTags: [],
-      imageText: []
+      imageText: [],
+      voice: {}
     }
   }
 
@@ -73,37 +74,39 @@ class App extends Component {
         imageText: res.responses[0].textAnnotations
       });
       submit.classList.toggle('submitting');
+      this.speak(res.responses[0].labelAnnotations[0].description);
     }, (err) => {
       console.log('Error: ', err)
     })
 
   };
 
-  speakSelectedWord = (text) => {
-    const awaitVoices = new Promise(done =>
-    window.speechSynthesis.onvoiceschanged = done);
+  getVoices = () => {
+
+    let awaitVoices = new Promise(done =>
+    window.speechSynthesis.onvoiceschanged = done
+    );
+
 
     awaitVoices.then(()=> {
-      const synth = window.speechSynthesis;
-      var voices = synth.getVoices();
-      console.log("VOICES: ", voices);
-      const utterance = new SpeechSynthesisUtterance();
-      utterance.voice = voices[50];
-      utterance.text = text;
-      synth.speak(utterance);
+      let synth = window.speechSynthesis;
+      let voices = synth.getVoices();
+      this.setState({voice: voices[50]});
     });
+  }
+
+  speak = (text) => {
+    let synth = window.speechSynthesis;
+    let msg = new SpeechSynthesisUtterance();
+    msg.voice = this.state.voice;
+    msg.text = text;
+    synth.speak(msg);
   }
 
   componentDidMount() {
     let video = document.getElementById('video'),
-        canvas = document.getElementById('canvas'),
-        synth = window.speechSynthesis,
-        voices;
+        canvas = document.getElementById('canvas');
 
-    this.speakSelectedWord('Face');
-
-    // console.log("MSG: ", msg);
-    console.log("Voices: ", voices);
     // camera access
     if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -123,11 +126,12 @@ class App extends Component {
       canvas.width = video.width;
       canvas.height = video.height;
     }
+
+    this.getVoices();
   };
 
   render() {
-    console.log("STATE IMAGE TAGS: ",this.state.imageTags);
-    console.log("STATE IMAGE TEXT: ",this.state.imageText);
+
     return (
       <div className="App">
 
