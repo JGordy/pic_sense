@@ -3,11 +3,6 @@ import PhotoTags from './PhotoTags';
 import '../styles/App.css';
 let rp = require('request-promise');
 
-//importing the cloud vision api node module
-// import vision from "react-cloud-vision-api";
-// const vision = require('react-cloud-vision-api')
-// vision.init({ auth: 'AIzaSyAS_9EhaNTu1UtMPgKfNQt8-fOpe8DExOI'})
-
 class App extends Component {
   constructor(props) {
     super(props)
@@ -17,7 +12,7 @@ class App extends Component {
       imageText: [],
       voice: {}
     }
-  }
+  };
 
   // converting the canvas image into base64
   convertCanvasToImage = (canvas) => {
@@ -27,7 +22,7 @@ class App extends Component {
     let imgURL = image.src.replace("data:image/png;base64,", "")
     this.setState({imageURL: imgURL});
 
-  }
+  };
 
   // moving the canvas position when clicked
   toggleCanvasPosition = () => {
@@ -36,7 +31,7 @@ class App extends Component {
 
     canvasCont.classList.toggle('snapped');
     snapButton.classList.toggle('snapped');
-  }
+  };
 
   snapPhoto = (width, height) => {
     let canvas = document.getElementById('canvas'),
@@ -51,7 +46,7 @@ class App extends Component {
     } else {
       imageWidth = width / 2;
       imageHeight = height / 1.45;
-    }
+    };
 
     context.drawImage(video, 0, 0, imageWidth, imageHeight);
     this.toggleCanvasPosition();
@@ -64,7 +59,7 @@ class App extends Component {
       imageTags: [],
       imageText: []
     })
-  }
+  };
 
   //submitting the converted image to Google Cloud Vision API
   submitPhoto = () => {
@@ -119,7 +114,7 @@ class App extends Component {
       let voices = synth.getVoices();
       this.setState({voice: voices[50]});
     });
-  }
+  };
 
   // onclick speak the given text
   speak = (text) => {
@@ -128,7 +123,7 @@ class App extends Component {
     msg.voice = this.state.voice;
     msg.text = text;
     synth.speak(msg);
-  }
+  };
 
   componentDidMount() {
     let video = document.getElementById('video'),
@@ -141,7 +136,7 @@ class App extends Component {
           video.src = window.URL.createObjectURL(stream);
           video.play();
         });
-    }
+    };
 
     // for mobile use
     if(window.innerWidth <= 850) {
@@ -154,7 +149,7 @@ class App extends Component {
       video.height = 480;
       canvas.width = video.width;
       canvas.height = video.height;
-    }
+    };
 
     // triggering the getVoice function upon the component loading
     this.getVoices();
@@ -191,6 +186,6 @@ class App extends Component {
       </div>
     );
   }
-}
+};
 
 export default App;
