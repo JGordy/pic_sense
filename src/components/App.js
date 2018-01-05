@@ -77,7 +77,6 @@ class App extends Component {
     //     .then(res => {
     //       console.log("RESPONSE: ", res);
     //     })
-
     let options = { method: 'POST',
       url: 'https://vision.googleapis.com/v1/images:annotate',
       qs: { key: 'AIzaSyAS_9EhaNTu1UtMPgKfNQt8-fOpe8DExOI' },
@@ -87,7 +86,10 @@ class App extends Component {
       body:
        { requests:
           [ { image: { content: `${this.state.imageURL}` },
-              features: [ { type: 'LABEL_DETECTION', maxResults: 5 } ] } ] },
+              features: [
+                { type: 'LABEL_DETECTION', maxResults: 5 },
+                { type: 'TEXT_DETECTION', maxResults: 5 }
+               ] } ] },
       json: true };
 
     rp(options, function (error, response, body) {
