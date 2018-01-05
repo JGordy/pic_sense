@@ -8,7 +8,8 @@ class App extends Component {
     super(props)
     this.state = {
       imageURL: '',
-      imageTags: []
+      imageTags: [],
+      imageText: []
     }
   }
 
@@ -24,8 +25,10 @@ class App extends Component {
 
   snapPhoto = (width, height) => {
     let canvas = document.getElementById('canvas'),
+        canvasCont = document.getElementById('canvas_container'),
         context = canvas.getContext('2d'),
         video = document.getElementById('video'),
+        snapButton = document.getElementById('button'),
         imageWidth,
         imageHeight;
 
@@ -39,10 +42,17 @@ class App extends Component {
 
     context.drawImage(video, 0, 0, imageWidth, imageHeight);
 
+    canvasCont.style.transform = "translate(0%, -88.5%)";
+    canvasCont.style.transition = "transform 0.4s";
+    snapButton.style.transform = 'translate(0%, 100%)';
+    snapButton.style.transition = 'transform 0.4s';
+
     this.convertCanvasToImage(canvas);
   };
 
   submitPhoto = () => {
+
+    console.log("submitted!");
 
     // Google Vision API request
     const req = new vision.Request({
@@ -58,8 +68,11 @@ class App extends Component {
     // the actual request to the API
     vision.annotate(req).then((res) => {
       // setting response to this.state.imageTags
-      this.setState({imageTags: res.responses[0].labelAnnotations})
       console.log(res.responses);
+      this.setState({
+        imageTags: res.responses[0].labelAnnotations,
+        imageText: res.responses[0].textAnnotations
+      });
     }, (err) => {
       console.log('Error: ', err)
     })
@@ -94,22 +107,25 @@ class App extends Component {
   };
 
   render() {
-    console.log("STATE: ",this.state.imageTags);
+    console.log("STATE IMAGE TAGS: ",this.state.imageTags);
+    console.log("STATE IMAGE TEXT: ",this.state.imageText);
     return (
       <div className="App">
 
         <video id="video" width='' height='' autoPlay></video>
 
-        <canvas id="canvas" width='' height=''></canvas>
+        <div id="canvas_container">
+          <canvas id="canvas" width='' height=''></canvas>
+          <button id="submit" onClick={() => this.submitPhoto()}>
+            <i className="material-icons">send</i>
+          </button>
+        </div>
 
         <img src='' id='image' alt=""/>
 
         <div id="button">
           <button id="snap" onClick={() => this.snapPhoto(window.innerWidth, window.innerHeight)}>
             <i className="material-icons">photo_camera</i>
-          </button>
-          <button id="submit" onClick={() => this.submitPhoto()}>
-            <i className="material-icons">send</i>
           </button>
         </div>
 

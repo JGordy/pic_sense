@@ -17,24 +17,39 @@ button:hover
   width: 100%;
 }
 
+#canvas_container {
+  position: fixed;
+  border: 3px solid rgba(0,0,0,1);
+  top: 100vh;
+  left: 0%;
+  transition: top 0.5s;
+}
+
 #button {
   position: fixed;
   bottom: 0;
   width: 100%;
   padding: 2rem 0rem;
+  transition: translate 0.3s;
 }
 
-#snap {
+#snap, #submit {
   background-color: transparent;
   border: none;
-  border: 5px solid white;
+  border: 5px solid red;
   border-radius: 50%;
-  color: white;
+  color: red;
   padding: 1rem 1rem;
 }
 
-#snap i {
+#snap i, #submit i {
   font-size: 42px;
+}
+
+#submit {
+  /* width: 100%; */
+  transform: translateY(-150%);
+  z-index: 3;
 }
 
 @media screen and (min-width: 800px) {
