@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
 import PhotoTags from './PhotoTags';
 import '../styles/App.css';
-import vision from "react-cloud-vision-api";
-vision.init({ auth: 'AIzaSyAS_9EhaNTu1UtMPgKfNQt8-fOpe8DExOI'})
+let rp = require('request-promise');
+
+//importing the cloud vision api node module
+// import vision from "react-cloud-vision-api";
+// const vision = require('react-cloud-vision-api')
+// vision.init({ auth: 'AIzaSyAS_9EhaNTu1UtMPgKfNQt8-fOpe8DExOI'})
 
 class App extends Component {
   constructor(props) {
@@ -15,6 +19,7 @@ class App extends Component {
     }
   }
 
+  // converting the canvas image into base64
   convertCanvasToImage = (canvas) => {
     let image = new Image();
 
@@ -24,6 +29,7 @@ class App extends Component {
 
   }
 
+  // moving the canvas position when clicked
   toggleCanvasPosition = () => {
     let canvasCont = document.getElementById('canvas_container'),
     snapButton = document.getElementById('button');
@@ -60,42 +66,53 @@ class App extends Component {
     })
   }
 
+  //submitting the converted image to Google Cloud Vision API
   submitPhoto = () => {
     let submit = document.getElementById('submit');
     submit.classList.toggle('submitting');
 
     // Google Vision API request
-    const req = new vision.Request({
-      image: new vision.Image({
-        base64: this.state.imageURL,
-      }),
-      features: [
-        new vision.Feature('LABEL_DETECTION', 5),
-        new vision.Feature('TEXT_DETECTION', 10),
-      ]
-    })
+    // fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAS_9EhaNTu1UtMPgKfNQt8-fOpe8DExOI', {
+    //       method: "POST",
+    //       body: requestBody,
+    //       headers: {
+    //         'Content-Type': 'application/json'
+    //       }
+    //     })
+    //     .then(res => {
+    //       console.log("RESPONSE: ", res);
+    //     })
 
-    // the actual request to the API
-    vision.annotate(req).then((res) => {
-      // setting response to this.state.imageTags
-      this.setState({
-        imageTags: res.responses[0].labelAnnotations,
-        imageText: res.responses[0].textAnnotations
-      });
+    let options = { method: 'POST',
+      url: 'https://vision.googleapis.com/v1/images:annotate',
+      qs: { key: 'AIzaSyAS_9EhaNTu1UtMPgKfNQt8-fOpe8DExOI' },
+      headers:
+       {
+         'Content-Type': 'application/json' },
+      body:
+       { requests:
+          [ { image: { content: `${this.state.imageURL}` },
+              features: [ { type: 'LABEL_DETECTION', maxResults: 5 } ] } ] },
+      json: true };
+
+    rp(options, function (error, response, body) {
+      if (error) throw new Error(error);
       submit.classList.toggle('submitting');
-      this.speak(res.responses[0].labelAnnotations[0].description);
-    }, (err) => {
-      console.log('Error: ', err)
-    })
+    }).then(body => {
+        this.setState({imageTags: body.responses[0].labelAnnotations});
+        this.speak(body.responses[0].labelAnnotations[0].description)
+      })
+      .catch(err => {
+        console.log("Error: ", err);
+      });
 
   };
 
+  // getting the voice list from the speechSynthesis API
   getVoices = () => {
-
     let awaitVoices = new Promise(done =>
     window.speechSynthesis.onvoiceschanged = done
     );
-
 
     awaitVoices.then(()=> {
       let synth = window.speechSynthesis;
@@ -104,6 +121,7 @@ class App extends Component {
     });
   }
 
+  // onclick speak the given text
   speak = (text) => {
     let synth = window.speechSynthesis;
     let msg = new SpeechSynthesisUtterance();
@@ -116,7 +134,7 @@ class App extends Component {
     let video = document.getElementById('video'),
         canvas = document.getElementById('canvas');
 
-    // camera access
+    // getting device camera access
     if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(function(stream) {
@@ -124,6 +142,8 @@ class App extends Component {
           video.play();
         });
     }
+
+    // for mobile use
     if(window.innerWidth <= 850) {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -136,6 +156,7 @@ class App extends Component {
       canvas.height = video.height;
     }
 
+    // triggering the getVoice function upon the component loading
     this.getVoices();
   };
 
@@ -159,10 +180,7 @@ class App extends Component {
 
           <PhotoTags tags={this.state.imageTags} text={this.state.imageText}
           speak={this.speak}  />
-
         </div>
-
-        <img src='' id='image' alt=""/>
 
         <div id="button">
           <button id="snap" onClick={() => this.snapPhoto(window.innerWidth, window.innerHeight)}>

@@ -4,10 +4,10 @@ export default class PhotoTags extends Component {
 
   render() {
     let tagList = this.props.tags.map((tag, index) => {
-      console.log(tag);
       let score = tag.score * 100,
       scoreStyle;
 
+      // changing background color of each button based on the confidence score
       if (score >= 95) {
         scoreStyle = {backgroundColor: 'rgba(70, 130, 180, 0.8)'}
       }
