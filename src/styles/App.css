@@ -96,6 +96,23 @@ button:hover
   }
 }
 
+.photoTags {
+  position: absolute;
+  top: 7rem;
+  right: 1rem;
+  min-height: 30vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.imageTags {
+  background-color: rgba(100,200,199,0.8);
+  border-radius: 15px;
+  color: white;
+  padding: 0.25rem 0.5rem;
+}
+
 @media screen and (min-width: 800px) {
 
   .App {

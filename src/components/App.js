@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PhotoTags from './PhotoTags';
 import '../styles/App.css';
 import vision from "react-cloud-vision-api";
 vision.init({ auth: 'AIzaSyAS_9EhaNTu1UtMPgKfNQt8-fOpe8DExOI'})
@@ -50,6 +51,14 @@ class App extends Component {
     this.toggleCanvasPosition();
     this.convertCanvasToImage(canvas);
   };
+
+  removePhoto = () => {
+    this.toggleCanvasPosition();
+    this.setState({
+      imageTags: [],
+      imageText: []
+    })
+  }
 
   submitPhoto = () => {
     let submit = document.getElementById('submit');
@@ -140,13 +149,17 @@ class App extends Component {
         <div id="canvas_container">
           <canvas id="canvas" width='' height=''></canvas>
           <div id="canvasButtons">
-            <button id="delete" onClick={() => this.toggleCanvasPosition()}>
+            <button id="delete" onClick={() => this.removePhoto()}>
             <i className="material-icons">delete</i>
             </button>
             <button id="submit" onClick={() => this.submitPhoto()}>
               <i className="material-icons">send</i>
             </button>
           </div>
+
+          <PhotoTags tags={this.state.imageTags} text={this.state.imageText}
+          speak={this.speak}  />
+
         </div>
 
         <img src='' id='image' alt=""/>
