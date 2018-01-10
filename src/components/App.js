@@ -21,7 +21,6 @@ class App extends Component {
     image.src = canvas.toDataURL("image/png");
     let imgURL = image.src.replace("data:image/png;base64,", "")
     this.setState({imageURL: imgURL});
-
   };
 
   // moving the canvas position when clicked
@@ -94,10 +93,10 @@ class App extends Component {
 
     rp(options, function (error, response, body) {
       if (error) throw new Error(error);
-      submit.classList.toggle('submitting');
     }).then(body => {
+        loading.classList.toggle('loading');
         this.setState({imageTags: body.responses[0].labelAnnotations});
-        this.speak(body.responses[0].labelAnnotations[0].description)
+        this.speak(body.responses[0].labelAnnotations[0].description, this.state.voice)
       })
       .catch(err => {
         console.log("Error: ", err);
@@ -114,43 +113,53 @@ class App extends Component {
     awaitVoices.then(()=> {
       let synth = window.speechSynthesis;
       let voices = synth.getVoices();
-      this.setState({voice: voices[50]});
+      this.setState({voice: voices[0]});
     });
   };
 
   // onclick speak the given text
-  speak = (text) => {
+  speak = (text, voice) => {
     let synth = window.speechSynthesis;
     let msg = new SpeechSynthesisUtterance();
-    msg.voice = this.state.voice;
+    // msg.voice = voice;
     msg.text = text;
     synth.speak(msg);
   };
 
+  // triggered once the component loads
   componentDidMount() {
     let video = document.getElementById('video'),
-        canvas = document.getElementById('canvas');
+        canvas = document.getElementById('canvas'),
+        cameraOrientation;
+
+        // for mobile use
+        if(window.innerWidth <= 850) {
+          cameraOrientation = { facingMode: { exact: "environment" } };
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          video.width = window.innerWidth;
+          video.height = window.innerHeight;
+        } else {
+          cameraOrientation = true;
+          video.width = window.innerWidth / 2;
+          video.height = 480;
+          canvas.width = video.width;
+          canvas.height = video.height;
+        };
 
     // getting device camera access
     if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true })
+      navigator.mediaDevices.getUserMedia({ audio: false, video: cameraOrientation })
         .then(function(stream) {
-          video.src = window.URL.createObjectURL(stream);
-          video.play();
+          if ("srcObject" in video) {
+              video.srcObject = stream;
+            } else {
+              video.src = window.URL.createObjectURL(stream);
+            }
+          video.onloadedmetadata = function(event) {
+            video.play();
+          };
         });
-    };
-
-    // for mobile use
-    if(window.innerWidth <= 850) {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      video.width = window.innerWidth;
-      video.height = window.innerHeight;
-    } else {
-      video.width = window.innerWidth / 2;
-      video.height = 480;
-      canvas.width = video.width;
-      canvas.height = video.height;
     };
 
     // triggering the getVoice function upon the component loading
@@ -162,20 +171,20 @@ class App extends Component {
     return (
       <div className="App">
 
-        <video id="video" width='' height='' autoPlay></video>
+        <video id="video" width='' height='' autoPlay playsInline></video>
 
         <div id="canvas_container">
           <canvas id="canvas" width='' height=''></canvas>
           <div id="canvasButtons">
             <button id="delete" onClick={() => this.removePhoto()}>
-            <i className="material-icons">delete</i>
+            <i className="material-icons">clear</i>
             </button>
             <button id="submit" onClick={() => this.submitPhoto()}>
               <i className="material-icons">send</i>
             </button>
           </div>
 
-          <PhotoTags tags={this.state.imageTags} text={this.state.imageText}
+          <PhotoTags tags={this.state.imageTags} text={this.state.imageText} voice={this.state.voice}
           speak={this.speak}  />
         </div>
 
@@ -185,9 +194,14 @@ class App extends Component {
           </button>
         </div>
 
+        <div id="loading">
+          <i className="material-icons">sync</i>
+          <p>sending...</p>
+        </div>
+
       </div>
     );
-  }
+  };
 };
 
 export default App;
